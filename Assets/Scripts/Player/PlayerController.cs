@@ -17,6 +17,10 @@ public class PlayerController : MonoBehaviour
 
     public float jumpVelocity;
 
+    public Camera mainCamera;
+    private Vector3 cameraForward;
+    private Vector3 cameraRight;
+
     void Start()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -56,6 +60,13 @@ public class PlayerController : MonoBehaviour
         Vector2 inputV2 = playerInput.actions["Move"].ReadValue<Vector2>();
         input = new Vector3(inputV2.x, 0, inputV2.y);
         input = Vector3.ClampMagnitude(input, 1);
-        movePlayer = input * moveSpeed;
+        movePlayer = input.x * cameraRight + input.z * cameraForward;
+        movePlayer *= moveSpeed;
+        player.transform.LookAt(player.transform.position + movePlayer);
+    }
+
+    private void camDirection()
+    {
+
     }
 }

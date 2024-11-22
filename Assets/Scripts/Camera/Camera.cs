@@ -14,6 +14,6 @@ public class Camera : MonoBehaviour
 
     private void LateUpdate()
     {
-
+        offset = Quaternion.AngleAxis(Input.GetAxis("Mouse X") * sensibilidad, Vector3.up) * offset;
     }
 }
