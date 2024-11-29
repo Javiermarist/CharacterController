@@ -6,6 +6,8 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
 
+    public PickUpObject pickUpObject;
+
     public CharacterController player;
     private Vector3 movePlayer;
 
@@ -27,17 +29,21 @@ public class PlayerController : MonoBehaviour
     public float slideVelocity;
     public float slopeForceDown;
 
+    public bool entraEnCaida = false;
+
     void Start()
     {
         playerInput = GetComponent<PlayerInput>();
         player = GetComponent<CharacterController>();
         fallVelocity = 0;
+
+        entraEnCaida = false;
     }
 
     void Update()
     {
-        Movement();
-        camDirection();
+        //Movement();
+        //camDirection();
         SetGravity();
         player.Move(movePlayer * Time.deltaTime);
     }
@@ -60,7 +66,7 @@ public class PlayerController : MonoBehaviour
             /*movePlayer.y = fallVelocity;*/
         }
         movePlayer.y = fallVelocity;
-        SlideDown();
+        SlideDown2();
     }
 
     public void SlideDown()
@@ -68,9 +74,48 @@ public class PlayerController : MonoBehaviour
         isOnBigSlope = Vector3.Angle(Vector3.up, hitNormal) >= player.slopeLimit;
         if (isOnBigSlope)
         {
+            entraEnCaida = true;
             movePlayer.x += ((1f - hitNormal.y) * hitNormal.x) * slideVelocity;
             movePlayer.z += ((1f - hitNormal.y) * hitNormal.z) * slideVelocity;
-            movePlayer.y = -slideVelocity;
+            //movePlayer.y = -slideVelocity;
+            movePlayer.y = -slopeForceDown;
+        }
+        else
+        {
+
+            if (entraEnCaida)
+            {
+                entraEnCaida = false;
+                movePlayer.x = 0;
+                movePlayer.z = 0;
+                movePlayer.y = 0;
+            }
+        }
+    }
+
+    public void SlideDown2()
+    {
+        isOnBigSlope = Vector3.Angle(Vector3.up, hitNormal) >= player.slopeLimit;
+        if (isOnBigSlope)
+        {
+            entraEnCaida = true;
+            // Calcular la dirección del deslizamiento en funcion de la pendiente
+            Vector3 SlopeDirection = Vector3.ProjectOnPlane(Vector3.down, hitNormal).normalized;
+            // Aplicar deslizamiento en direccion de la pendiente
+            movePlayer = Vector3.Lerp(movePlayer, SlopeDirection * slideVelocity, Time.deltaTime * 10f);
+            // Añadir una fuerza hacia abajo para simular gravedad extra en la pendiente
+            movePlayer.y -= slopeForceDown * Time.deltaTime;
+        }
+        else
+        {
+            if (entraEnCaida)
+            {
+                // Desacelerar gradualmente el movimiento
+                entraEnCaida = false;
+                movePlayer.x = 0;
+                movePlayer.z = 0;
+                movePlayer.y = 0;
+            }
         }
     }
 
@@ -95,9 +140,10 @@ public class PlayerController : MonoBehaviour
         Vector2 inputV2 = value.Get<Vector2>();
         input = new Vector3(inputV2.x, 0, inputV2.y);
         input = Vector3.ClampMagnitude(input, 1);
-        movePlayer = input.x * cameraRight + input.z * cameraForward;
+        //movePlayer = input.x * cameraRight + input.z * cameraForward;
+        movePlayer = input;
         movePlayer *= moveSpeed;
-        player.transform.LookAt(player.transform.position + movePlayer);
+        //player.transform.LookAt(player.transform.position + movePlayer);
     }
 
     private void camDirection()
